@@ -1,4 +1,4 @@
-package com.bbrustol.core.infrastrucur
+package com.bbrustol.core.infrastructure
 
 import org.junit.Test
 

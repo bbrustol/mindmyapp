@@ -1,4 +1,4 @@
-package com.bbrustol.core.infrastrucur
+package com.bbrustol.core.infrastructure
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

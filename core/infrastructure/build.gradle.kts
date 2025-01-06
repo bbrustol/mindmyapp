@@ -4,8 +4,8 @@ plugins {
 }
 
 android {
-    namespace = "com.bbrustol.core.infrastrucur"
-    compileSdk = 34
+    namespace = "com.bbrustol.core.infrastructure"
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
@@ -28,7 +28,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+    packaging {
+        resources {
+            resources.excludes.add("META-INF/*")
+        }
     }
 }
 
@@ -36,8 +41,8 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
+
+    implementation(libs.bundles.koin)
+    implementation(libs.bundles.ktor)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }
