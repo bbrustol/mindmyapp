@@ -12,7 +12,7 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.bbrustol.ui.R
+import com.bbrustol.core.ui.R
 
 @Composable
 fun LoadImage(
@@ -24,7 +24,7 @@ fun LoadImage(
 ) {
     if (LocalInspectionMode.current) {
         Image(
-            painter = painterResource(id = R.drawable.bg_pokeball),
+            painter = painterResource(id = R.drawable.octocat),
             contentDescription = null,
             contentScale = contentScale,
             modifier = modifier
