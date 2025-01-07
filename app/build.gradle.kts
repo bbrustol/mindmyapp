@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":mindmylib"))
     implementation(project(":core:ui"))
     implementation(project(":core:infrastructure"))
+    implementation(project(":feature:organizations"))
 
     implementation(libs.androidx.core.ktx)
 
