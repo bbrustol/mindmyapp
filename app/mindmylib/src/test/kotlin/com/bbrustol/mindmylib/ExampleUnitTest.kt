@@ -1,4 +1,4 @@
-package com.bbrustol.feature.mindmylib
+package com.bbrustol.mindmylib
 
 import org.junit.Test
 

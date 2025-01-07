@@ -1,4 +1,4 @@
-package com.bbrustol.feature.mindmylib
+package com.bbrustol.mindmylib
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

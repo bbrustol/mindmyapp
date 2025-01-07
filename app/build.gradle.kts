@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":feature:mindmylib"))
+    implementation(project(":mindmylib"))
     implementation(project(":core:ui"))
     implementation(project(":core:infrastructure"))
 

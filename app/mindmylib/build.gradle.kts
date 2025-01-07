@@ -1,10 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
-    namespace = "com.bbrustol.feature.mindmylib"
+    namespace = "com.bbrustol.mindmylib"
     compileSdk = 35
 
     defaultConfig {
@@ -33,6 +34,8 @@ android {
 }
 
 dependencies {
-
-
+    implementation(project(":core:infrastructure"))
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.koin)
+    implementation(libs.kotlinx.serialization.json)
 }

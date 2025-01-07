@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Mind My App"
 include(":app")
-include(":feature:mindmylib")
+include(":mindmylib")
 include(":core:infrastructure")
 include(":core:ui")
+include(":feature:organizations")
