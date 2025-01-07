@@ -1,3 +1,3 @@
 package com.bbrustol.mindmylib.data.organizations.data.response
 
-class OrganizationsResponse : ArrayList<OrganizationsItemResponse>()
+typealias OrganizationsResponse = List<OrganizationsItemResponse>

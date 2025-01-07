@@ -6,17 +6,17 @@ import com.bbrustol.mindmylib.data.organizations.data.response.OrganizationsItem
 fun List<OrganizationsItemResponse>.toDomainModel() = this.map { it.toDomainModel() }
 
 fun OrganizationsItemResponse.toDomainModel() = OrganizationsItemDomainModel(
-    avatarUrl = avatarUrl,
-    description = description,
-    eventsUrl = eventsUrl,
-    hooksUrl = hooksUrl,
+    avatarUrl = avatarUrl ?: "",
+    description = description ?: "",
+    eventsUrl = eventsUrl ?: "",
+    hooksUrl = hooksUrl ?: "",
     id = id,
-    issuesUrl = issuesUrl,
+    issuesUrl = issuesUrl ?: "",
     login = login,
-    membersUrl = membersUrl,
+    membersUrl = membersUrl ?: "",
     nodeId = nodeId,
-    publicMembersUrl = publicMembersUrl,
-    reposUrl = reposUrl,
-    url = url
+    publicMembersUrl = publicMembersUrl ?: "",
+    reposUrl = reposUrl ?: "",
+    url = url ?: ""
 )
 

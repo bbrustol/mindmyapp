@@ -4,7 +4,6 @@ import com.bbrustol.core.infrastructure.network.ApiError
 import com.bbrustol.core.infrastructure.network.ApiException
 import com.bbrustol.core.infrastructure.network.ApiResult
 import com.bbrustol.core.infrastructure.network.ApiSuccess
-import com.bbrustol.core.infrastructure.network.WithoutInternet
 import com.bbrustol.mindmylib.data.organizations.data.service.OrganizationsService
 import com.bbrustol.mindmylib.data.organizations.domain.model.OrganizationsItemDomainModel
 import com.bbrustol.mindmylib.data.organizations.domain.model.mapper.toDomainModel
@@ -29,9 +28,6 @@ class OrganizationsRepository(
                 is ApiException -> emit(
                     ApiException(listResult.throwable, listResult.serviceStatusType)
                 )
-
-                is WithoutInternet -> emit(WithoutInternet(listResult.serviceStatusType))
-
             }
         }.flowOn(dispatcher)
     }
