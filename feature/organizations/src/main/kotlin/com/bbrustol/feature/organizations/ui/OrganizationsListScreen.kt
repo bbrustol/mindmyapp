@@ -18,6 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -26,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bbrustol.core.ui.compose.ErrorScreen
 import com.bbrustol.core.ui.compose.ExceptionScreen
+import com.bbrustol.core.ui.compose.SearchBar
 import com.bbrustol.core.ui.compose.WithoutInternetScreen
 import com.bbrustol.core.ui.utils.InversePullToRefreshBox
 import com.bbrustol.core.ui.utils.LoadImage
@@ -40,6 +45,9 @@ import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.Show
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowException
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowMissingToken
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowNoInternet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.bbrustol.core.ui.R as CoreUiR
 
 @Composable
@@ -48,6 +56,7 @@ internal fun OrganizationsListScreen(
     uiState: OrganizationsUiState,
     onEvent: (OrganizationsEvent) -> Unit,
 ) {
+
     Scaffold(
         modifier = modifier,
         topBar = {},
@@ -91,11 +100,30 @@ private fun CreateOrganizationsList(
     organizationsUiState: OrganizationsUiState,
     onEvent: (OrganizationsEvent) -> Unit,
 ) {
-    val state = rememberLazyListState()
+    val refreshState = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
     val uiState = (organizationsUiState as OrganizationsList)
 
+    var searchTerm by remember { mutableStateOf("") }
+    var filteredItems by remember { mutableStateOf(emptyList<OrganizationsItemsUiModel>()) }
+
     with(uiState) {
-        val refreshState = rememberPullToRefreshState()
+        SearchBar(
+            searchTerm = searchTerm,
+            onSearchTermChanged = { search ->
+                searchTerm = search
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    listState.scrollToItem(0)
+                }
+
+                filteredItems = list.filter { item ->
+                    item.login.contains(search, ignoreCase = true) || item.id.toString()
+                        .contains(searchTerm)
+                }
+            },
+            message = if (filteredItems.isEmpty()) { stringResource(CoreUiR.string.search_not_found) } else { "" }
+        )
 
         InversePullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
@@ -107,9 +135,15 @@ private fun CreateOrganizationsList(
                 }
             }
         ) {
-            LazyColumn(state = state) {
-                items(list.size, key = { list[it].id }) {
-                    CardOrganization(list[it], onEvent)
+            LazyColumn(state = listState) {
+                if (filteredItems.isEmpty()) {
+                    items(list.size, key = { list[it].id }) {
+                        CardOrganization(list[it], onEvent)
+                    }
+                } else {
+                    items(filteredItems.size, key = { filteredItems[it].id }) {
+                        CardOrganization(filteredItems[it], onEvent)
+                    }
                 }
             }
         }

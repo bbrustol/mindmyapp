@@ -41,6 +41,7 @@ internal sealed interface OrganizationsUiState {
 internal sealed interface OrganizationsEvent {
     data object GetList : OrganizationsEvent
     data class GetDetails(val uiModel: OrganizationsItemsUiModel) : OrganizationsEvent
+    data class UpdateSearchTerm(val uiModel: List<OrganizationsItemsUiModel>) : OrganizationsEvent
 }
 
 internal sealed interface OrganizationsSideEffect {
@@ -56,53 +57,58 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
     override fun process(event: OrganizationsEvent) {
         when (event) {
             is GetDetails -> sendSideEffect { GotoDetails(event.uiModel) }
-            is GetList -> viewModelScope.launch {
-                val lastId = (uiState.value as? OrganizationsList)?.lastId ?: 0
-                organizationsRepository.getOrganizationsList(lastId)
-                    .onStart {
-                        val currentState = (uiState.value as? OrganizationsList)
-                        if (currentState != null) {
-                            updateState {
-                                OrganizationsList(
-                                    list = currentState.list,
-                                    lastId = currentState.lastId,
-                                    isLoading = true,
-                                )
-                            }
-                        }
-                    }
-                    .catch {
+            is GetList -> getOrganizationList()
+            is UpdateSearchTerm -> updateSearchTerm(event.uiModel)
+        }
+    }
+
+    private fun getOrganizationList() {
+        viewModelScope.launch {
+            val lastId = (uiState.value as? OrganizationsList)?.lastId ?: 0
+            organizationsRepository.getOrganizationsList(lastId)
+                .onStart {
+                    val currentState = (uiState.value as? OrganizationsList)
+                    if (currentState != null) {
                         updateState {
-                            ShowException(
-                                throwable = it.cause
+                            OrganizationsList(
+                                list = currentState.list,
+                                lastId = currentState.lastId,
+                                isLoading = true,
                             )
                         }
                     }
-                    .collect { result ->
-                        when (result) {
-                            is ApiError -> updateState {
-                                ShowError(
-                                    result.code,
-                                    result.message
+                }
+                .catch {
+                    updateState {
+                        ShowException(
+                            throwable = it.cause
+                        )
+                    }
+                }
+                .collect { result ->
+                    when (result) {
+                        is ApiError -> updateState {
+                            ShowError(
+                                result.code,
+                                result.message
+                            )
+                        }
+
+                        is ApiException -> updateState {
+                            when (result.serviceStatusType) {
+                                ServerStatusType.ServiceUnavailable -> ShowNoInternet
+                                ServerStatusType.NoToken -> ShowMissingToken
+                                else -> ShowException(
+                                    result.throwable
                                 )
                             }
-
-                            is ApiException -> updateState {
-                                when (result.serviceStatusType) {
-                                    ServerStatusType.ServiceUnavailable -> ShowNoInternet
-                                    ServerStatusType.NoToken -> ShowMissingToken
-                                    else -> ShowException(
-                                        result.throwable
-                                    )
-                                }
-                            }
-
-                            is ApiSuccess -> if (lastId == 0) initList(
-                                result.data
-                            ) else updateList(result.data)
                         }
+
+                        is ApiSuccess -> if (lastId == 0) initList(
+                            result.data
+                        ) else updateList(result.data)
                     }
-            }
+                }
         }
     }
 
@@ -111,7 +117,7 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
             OrganizationsList(
                 list = result.toUiModel(),
                 lastId = result.toUiModel().last().id,
-                isLoading = false,
+                isLoading = false
             )
         }
     }
@@ -124,9 +130,21 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                 OrganizationsList(
                     list = currentState.list + result.toUiModel(),
                     lastId = result.toUiModel().last().id,
-                    isLoading = false,
+                    isLoading = false
+                )
+            }
+        }
+    }
 
-                    )
+    private fun updateSearchTerm(filteredItems: List<OrganizationsItemsUiModel>) {
+        val currentState = (uiState.value as? OrganizationsList)
+        if (currentState != null) {
+            updateState {
+                OrganizationsList(
+                    list = filteredItems,
+                    lastId = currentState.lastId,
+                    isLoading = currentState.isLoading
+                )
             }
         }
     }
