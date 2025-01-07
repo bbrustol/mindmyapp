@@ -15,7 +15,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        val key: String = gradleLocalProperties(rootDir).getProperty("API_TOKEN") ?: ""
+        val key: String = project.findProperty("API_TOKEN")?.toString() ?: ""
         buildConfigField("String", "API_TOKEN", "\"$key\"")
 
         buildConfigField("String", "BASE_URL", "\"api.github.com/\"")
@@ -42,6 +42,10 @@ android {
         resources {
             resources.excludes.add("META-INF/*")
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

@@ -1,42 +1,51 @@
 package com.bbrustol.core.infrastructure.network
 
-import com.bbrustol.core.infrastructure.network.ServerStatusType.*
+import com.bbrustol.core.infrastructure.network.ServerStatusType.ClientError
+import com.bbrustol.core.infrastructure.network.ServerStatusType.ServerError
+import com.bbrustol.core.infrastructure.network.ServerStatusType.ServiceUnavailable
+import com.bbrustol.core.infrastructure.network.ServerStatusType.Success
+import com.bbrustol.core.infrastructure.network.ServerStatusType.UnknownError
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import kotlinx.io.IOException
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
-suspend inline fun <reified T : Any> handleApi(
-    networkChecker: NetworkChecker,
-    crossinline response: suspend () -> HttpResponse
-): ApiResult<T> {
+object ApiHandler : KoinComponent {
+    suspend inline fun <reified T : Any> handleApi(
+        crossinline response: suspend () -> HttpResponse
+    ): ApiResult<T> {
 
-    if (!networkChecker.isNetworkAvailable()) {
-        return WithoutInternet(ServiceUnavailable)
-    }
+        val networkChecker: NetworkChecker = get()
 
-    val result = try {
-        response()
-    } catch (e: IOException) {
-        return ApiException(throwable = e, serviceStatusType = ServiceUnavailable)
-    } catch (e: Throwable) {
-        return ApiException(throwable = e, serviceStatusType = UnknownError)
-    }
+        if (!networkChecker.isNetworkAvailable()) {
+            return WithoutInternet(ServiceUnavailable)
+        }
 
-    return when (result.status.value) {
-        in Success.range -> ApiSuccess(result.body())
+        val result = try {
+            response()
+        } catch (e: IOException) {
+            return ApiException(throwable = e, serviceStatusType = ServiceUnavailable)
+        } catch (e: Throwable) {
+            return ApiException(throwable = e, serviceStatusType = UnknownError)
+        }
 
-        in ClientError.range -> ApiError(
-            code = result.status.value,
-            message = result.status.description,
-            serviceStatusType = ClientError
-        )
+        return when (result.status.value) {
+            in Success.range -> ApiSuccess(result.body())
 
-        in ServerError.range -> ApiError(
-            code = result.status.value,
-            message = result.status.description,
-            serviceStatusType = ServerError
-        )
+            in ClientError.range -> ApiError(
+                code = result.status.value,
+                message = result.status.description,
+                serviceStatusType = ClientError
+            )
 
-        else -> ApiException(serviceStatusType = UnknownError)
+            in ServerError.range -> ApiError(
+                code = result.status.value,
+                message = result.status.description,
+                serviceStatusType = ServerError
+            )
+
+            else -> ApiException(serviceStatusType = UnknownError)
+        }
     }
 }
