@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Mind My App</string>
+
+    <string name="button_try_again">Try Again</string>
+    <string name="internet_connection_not_available">Internet connection not available</string>
+    <string name="missing_token">Missing token!\n\nPlease add API_TOKEN={YOUR_TOKE} in local.properties to proceed.</string>
 </resources>

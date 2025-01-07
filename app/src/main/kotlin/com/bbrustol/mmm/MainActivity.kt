@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.bbrustol.core.ui.theme.MindMyAppTheme
+import com.bbrustol.feature.organizations.ui.NavOrganizations
 import org.koin.compose.KoinContext
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +15,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MindMyAppTheme {
                 KoinContext {
-                    NavOrganization()
+                    NavOrganizations()
                 }
             }
         }
