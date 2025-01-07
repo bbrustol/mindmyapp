@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -12,6 +14,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        val key: String = gradleLocalProperties(rootDir).getProperty("API_TOKEN") ?: ""
+        buildConfigField("String", "API_TOKEN", "\"$key\"")
+
+        buildConfigField("String", "BASE_URL", "\"api.github.com/\"")
+
     }
 
     buildTypes {
