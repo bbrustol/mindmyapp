@@ -1,5 +1,10 @@
 package com.bbrustol.feature.organizations.model
 
+import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
+
+@Serializable
+@Immutable
 data class OrganizationsItemsUiModel(
     val avatarUrl: String,
     val description: String,

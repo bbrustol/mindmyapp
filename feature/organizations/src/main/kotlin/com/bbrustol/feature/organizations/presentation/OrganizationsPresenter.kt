@@ -5,7 +5,7 @@ import com.bbrustol.core.infrastructure.BasePresenter
 import com.bbrustol.core.infrastructure.network.ApiError
 import com.bbrustol.core.infrastructure.network.ApiException
 import com.bbrustol.core.infrastructure.network.ApiSuccess
-import com.bbrustol.core.infrastructure.network.WithoutInternet
+import com.bbrustol.core.infrastructure.network.ServerStatusType
 import com.bbrustol.feature.organizations.model.OrganizationsItemsUiModel
 import com.bbrustol.feature.organizations.model.mapper.toUiModel
 import com.bbrustol.mindmylib.data.organizations.domain.model.OrganizationsItemDomainModel
@@ -36,7 +36,6 @@ internal sealed interface OrganizationsUiState {
 
     data object ShowNoInternet : OrganizationsUiState
     data object ShowMissingToken : OrganizationsUiState
-    data object ShowLoading : OrganizationsUiState
 }
 
 internal sealed interface OrganizationsEvent {
@@ -45,7 +44,8 @@ internal sealed interface OrganizationsEvent {
 }
 
 internal sealed interface OrganizationsSideEffect {
-    data class GotoDetails(val organizationsUiModel: OrganizationsItemsUiModel) : OrganizationsSideEffect
+    data class GotoDetails(val organizationsUiModel: OrganizationsItemsUiModel) :
+        OrganizationsSideEffect
 }
 
 internal class OrganizationsPresenter(private val organizationsRepository: OrganizationsRepository) :
@@ -60,7 +60,16 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                 val lastId = (uiState.value as? OrganizationsList)?.lastId ?: 0
                 organizationsRepository.getOrganizationsList(lastId)
                     .onStart {
-                        updateState { ShowLoading }
+                        val currentState = (uiState.value as? OrganizationsList)
+                        if (currentState != null) {
+                            updateState {
+                                OrganizationsList(
+                                    list = currentState.list,
+                                    lastId = currentState.lastId,
+                                    isLoading = true,
+                                )
+                            }
+                        }
                     }
                     .catch {
                         updateState {
@@ -79,16 +88,18 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                             }
 
                             is ApiException -> updateState {
-                                ShowException(
-                                    result.throwable
-                                )
+                                when (result.serviceStatusType) {
+                                    ServerStatusType.ServiceUnavailable -> ShowNoInternet
+                                    ServerStatusType.NoToken -> ShowMissingToken
+                                    else -> ShowException(
+                                        result.throwable
+                                    )
+                                }
                             }
 
                             is ApiSuccess -> if (lastId == 0) initList(
                                 result.data
                             ) else updateList(result.data)
-
-                            is WithoutInternet -> updateState { ShowNoInternet }
                         }
                     }
             }
