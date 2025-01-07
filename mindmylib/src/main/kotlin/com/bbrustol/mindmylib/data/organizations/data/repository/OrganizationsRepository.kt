@@ -5,8 +5,9 @@ import com.bbrustol.core.infrastructure.network.ApiException
 import com.bbrustol.core.infrastructure.network.ApiResult
 import com.bbrustol.core.infrastructure.network.ApiSuccess
 import com.bbrustol.core.infrastructure.network.WithoutInternet
-import com.bbrustol.mindmylib.data.organizations.data.response.OrganizationsResponse
 import com.bbrustol.mindmylib.data.organizations.data.service.OrganizationsService
+import com.bbrustol.mindmylib.data.organizations.domain.model.OrganizationsItemDomainModel
+import com.bbrustol.mindmylib.data.organizations.domain.model.mapper.toDomainModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -16,10 +17,10 @@ class OrganizationsRepository(
     private val organizationsService: OrganizationsService,
     private val dispatcher: CoroutineDispatcher
 ) {
-    fun getOrganizationsList(lastId: Int): Flow<ApiResult<OrganizationsResponse>> {
+    fun getOrganizationsList(lastId: Int): Flow<ApiResult<List<OrganizationsItemDomainModel>>> {
         return flow {
             when (val listResult = organizationsService.getOrganizationsList(lastId)) {
-                is ApiSuccess -> emit(listResult)
+                is ApiSuccess -> emit(ApiSuccess(listResult.data.toDomainModel()))
 
                 is ApiError -> emit(
                     ApiError(listResult.code, listResult.message, listResult.serviceStatusType)
