@@ -1,10 +1,7 @@
 package com.bbrustol.core.infrastructure.network
 
-import com.bbrustol.core.infrastructure.network.ServerStatusType.ClientError
-import com.bbrustol.core.infrastructure.network.ServerStatusType.ServerError
-import com.bbrustol.core.infrastructure.network.ServerStatusType.ServiceUnavailable
-import com.bbrustol.core.infrastructure.network.ServerStatusType.Success
-import com.bbrustol.core.infrastructure.network.ServerStatusType.UnknownError
+import com.bbrustol.core.infrastructure.BuildConfig
+import com.bbrustol.core.infrastructure.network.ServerStatusType.*
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import kotlinx.io.IOException
@@ -17,10 +14,9 @@ object ApiHandler : KoinComponent {
     ): ApiResult<T> {
 
         val networkChecker: NetworkChecker = get()
+        if (!networkChecker.isNetworkAvailable()) return ApiException(serviceStatusType = InternetConnectionProblems)
 
-        if (!networkChecker.isNetworkAvailable()) {
-            return WithoutInternet(ServiceUnavailable)
-        }
+        if (BuildConfig.API_TOKEN.isEmpty()) return ApiException(serviceStatusType = NoToken)
 
         val result = try {
             response()

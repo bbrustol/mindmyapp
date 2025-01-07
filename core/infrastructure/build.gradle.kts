@@ -3,6 +3,7 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -15,10 +16,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        val key: String = project.findProperty("API_TOKEN")?.toString() ?: ""
+        val key: String = gradleLocalProperties(rootDir, providers).getProperty("API_TOKEN") ?: ""
         buildConfigField("String", "API_TOKEN", "\"$key\"")
 
-        buildConfigField("String", "BASE_URL", "\"api.github.com/\"")
+        buildConfigField("String", "BASE_URL", "\"api.github.com\"")
 
     }
 

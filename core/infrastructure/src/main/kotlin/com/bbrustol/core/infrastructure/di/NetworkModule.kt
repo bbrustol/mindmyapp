@@ -1,13 +1,13 @@
 package com.bbrustol.core.infrastructure.di
 
+import com.bbrustol.core.infrastructure.BuildConfig
 import com.bbrustol.core.infrastructure.network.DefaultNetworkChecker
 import com.bbrustol.core.infrastructure.network.NetworkChecker
-import com.bbrustol.feature.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.ANDROID
 import io.ktor.client.plugins.logging.EMPTY
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -21,14 +21,15 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val networkModule = module {
-    single<NetworkChecker> { DefaultNetworkChecker(context = androidContext()) }
     single { provideHttpClient() }
+    single<NetworkChecker> { DefaultNetworkChecker(context = androidContext()) }
 }
 
-private fun provideHttpClient(): HttpClient =
+fun provideHttpClient(): HttpClient =
     HttpClient(Android) {
         install(ContentNegotiation) {
             json(Json {
+                prettyPrint = true
                 ignoreUnknownKeys = true
                 isLenient = true
             })
@@ -46,7 +47,8 @@ private fun provideHttpClient(): HttpClient =
         install(Logging) {
             val isDebug: Boolean = BuildConfig.DEBUG
             level = if (isDebug) LogLevel.ALL else LogLevel.INFO
-            logger = if (isDebug) Logger.DEFAULT else Logger.EMPTY
+            logger = if (isDebug) Logger.ANDROID else Logger.EMPTY
+            sanitizeHeader { header -> header == HttpHeaders.Authorization }
         }
 
         engine {

@@ -14,5 +14,3 @@ class ApiException<T : Any>(
     val throwable: Throwable? = null,
     val serviceStatusType: ServerStatusType
 ) : ApiResult<T>
-
-class WithoutInternet<T : Any>(val serviceStatusType: ServerStatusType) : ApiResult<T>

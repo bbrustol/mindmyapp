@@ -6,6 +6,7 @@ enum class ServerStatusType(val range: IntRange) {
     ServerError(500..599),
     ServiceUnavailable(0..0),
     UnknownError(0..0),
+    InternetConnectionProblems(0..0),
     Catch(0..0),
     NoToken(0..0)
 }
