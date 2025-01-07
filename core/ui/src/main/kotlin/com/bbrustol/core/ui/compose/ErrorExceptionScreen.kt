@@ -16,22 +16,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bbrustol.ui.R
-import com.bbrustol.ui.utils.LoadLottie
+import com.bbrustol.core.ui.R
+import com.bbrustol.core.ui.utils.LoadLottie
 
 
 @Composable
-fun ErrorScreen(errorMessage: String, code: Int,  onRetryAction:() -> Unit) {
-    ErrorAndException("$code - $errorMessage", onRetryAction)
+fun ErrorScreen(errorMessage: String, code: Int, onRetryAction: () -> Unit) {
+    ErrorAndException("$code - $errorMessage", onRetryAction = onRetryAction)
 }
 
 @Composable
-fun ExceptionScreen(errorMessage: String,  onRetryAction:() -> Unit) {
-    ErrorAndException(errorMessage, onRetryAction)
+fun ExceptionScreen(errorMessage: String, isShowButton: Boolean = true, onRetryAction: () -> Unit) {
+    ErrorAndException(errorMessage, onRetryAction = onRetryAction, isShowButton = isShowButton)
 }
 
 @Composable
-fun WithoutInternetScreen( onRetryAction:() -> Unit) {
+fun WithoutInternetScreen(onRetryAction: () -> Unit) {
     WithoutInternet(onRetryAction)
 }
 
@@ -68,7 +68,11 @@ private fun WithoutInternet(onRetryAction: () -> Unit) {
 }
 
 @Composable
-private fun ErrorAndException(errorMessage: String,  onRetryAction:() -> Unit) {
+private fun ErrorAndException(
+    errorMessage: String,
+    isShowButton: Boolean = true,
+    onRetryAction: () -> Unit,
+) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -88,12 +92,14 @@ private fun ErrorAndException(errorMessage: String,  onRetryAction:() -> Unit) {
                 color = MaterialTheme.colorScheme.error
             )
 
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                onClick = { onRetryAction() }) {
-                Text(text = stringResource(R.string.button_try_again))
+            if (isShowButton) {
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    onClick = { onRetryAction() }) {
+                    Text(text = stringResource(R.string.button_try_again))
+                }
             }
         }
     }
@@ -110,8 +116,10 @@ fun ErrorScreenPreview() {
 fun ExceptionScreenPreview() {
     ExceptionScreen("Exception: Lorem ipsum dolor it ") {}
 }
+
 @Preview
 @Composable
 fun WithoutInternetScreenPreview() {
     WithoutInternetScreen {}
 }
+
