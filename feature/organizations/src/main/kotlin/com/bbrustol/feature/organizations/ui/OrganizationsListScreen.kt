@@ -15,10 +15,15 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,14 +48,15 @@ import com.bbrustol.core.ui.compose.SearchBar
 import com.bbrustol.core.ui.compose.WithoutInternetScreen
 import com.bbrustol.core.ui.utils.InversePullToRefreshBox
 import com.bbrustol.core.ui.utils.LoadImage
-import com.bbrustol.feature.organizations.model.OrganizationsItemsUiModel
+import com.bbrustol.feature.organizations.model.OrganizationsItemUiModel
 import com.bbrustol.feature.organizations.presentation.OrganizationsEvent
 import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.GetDetails
 import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.GetList
 import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.SortListBy
+import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.ToggleFavorite
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.Idle
-import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.OrganizationsList
+import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.OrganizationList
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowError
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowException
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.ShowMissingToken
@@ -70,7 +78,7 @@ internal fun OrganizationsListScreen(
         Idle -> { /*Do nothing*/
         }
 
-        is OrganizationsList -> CreateOrganizationsList(
+        is OrganizationList -> CreateOrganizationsList(
             organizationsUiState = uiState,
             onEvent = onEvent
         )
@@ -103,10 +111,10 @@ private fun CreateOrganizationsList(
 ) {
     val refreshState = rememberPullToRefreshState()
     val listState = rememberLazyListState()
-    val uiState = (organizationsUiState as OrganizationsList)
+    val uiState = (organizationsUiState as OrganizationList)
 
     var searchTerm by remember { mutableStateOf("") }
-    var filteredItems by remember { mutableStateOf(emptyList<OrganizationsItemsUiModel>()) }
+    var filteredItems by remember { mutableStateOf(emptyList<OrganizationsItemUiModel>()) }
 
     Scaffold(
         modifier = modifier.padding(0.dp),
@@ -133,7 +141,7 @@ private fun CreateOrganizationsList(
                         stringResource(CoreUiR.string.search_not_found)
                     } else {
                         ""
-                    }
+                    },
                 )
             }
         },
@@ -187,6 +195,7 @@ private fun CreateOrganizationsList(
                 ) {
                     Text(text = stringResource(CoreUiR.string.button_try_again))
                 }
+
                 var sortedByStr by remember { mutableIntStateOf(CoreUiR.string.button_sort_id) }
                 Button(
                     modifier = Modifier
@@ -194,12 +203,12 @@ private fun CreateOrganizationsList(
                         .padding(end = 4.dp, start = 1.dp),
                     shape = RoundedCornerShape(size = 4.dp),
                     onClick = {
-
                         when (uiState.sortType) {
                             SortType.Id -> {
                                 sortedByStr = CoreUiR.string.button_sort_login
                                 onEvent(SortListBy(SortType.Login))
                             }
+
                             SortType.Login -> {
                                 sortedByStr = CoreUiR.string.button_sort_id
                                 onEvent(SortListBy(SortType.Id))
@@ -226,10 +235,9 @@ private fun CreateOrganizationsList(
 
 @Composable
 private fun CardOrganization(
-    itemUiModel: OrganizationsItemsUiModel,
+    itemUiModel: OrganizationsItemUiModel,
     onEvent: (OrganizationsEvent) -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .padding(8.dp, 4.dp, 8.dp, 0.dp)
@@ -271,20 +279,34 @@ private fun CardOrganization(
                         color = colorScheme.onPrimaryContainer
                     )
                 }
+            }
 
+            var recompositionTrigger by remember { mutableIntStateOf(0) }
+
+            IconButton(onClick = { onEvent(ToggleFavorite(itemUiModel)) }) {
+                recompositionTrigger += 1
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = stringResource(if (isFavorite) CoreUiR.string.speech_remove_from_favorites else CoreUiR.string.speech_add_to_favorites)
+                )
             }
         }
-
-
     }
+}
 
+@Composable
+private fun FavoriteButton(
+    onEvent: (OrganizationsEvent) -> Unit,
+    itemUiModel: OrganizationsItemUiModel
+) {
 
 }
+
 
 @Preview
 @Composable
 fun CardOrganizationPreview() {
-    val mock = OrganizationsItemsUiModel(
+    val mock = OrganizationsItemUiModel(
         avatarUrl = "avatarUrl",
         description = "description",
         eventsUrl = "eventsUrl",
@@ -296,7 +318,9 @@ fun CardOrganizationPreview() {
         nodeId = "nodeId",
         publicMembersUrl = "publicMembersUrl",
         reposUrl = "reposUrl",
-        url = "url"
+        url = "url",
+        isFavorite = false,
+        index = 0
     )
 
     CardOrganization(mock) {}

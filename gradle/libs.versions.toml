@@ -1,6 +1,7 @@
 [versions]
 agp = "8.7.3"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
+ksp = "2.1.0-1.0.29"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -13,6 +14,7 @@ androidX-constraintLayout = "1.1.0"
 
 koin = "4.0.0"
 ktor = "3.0.3"
+room = "2.6.1"
 
 serialization = "1.7.3"
 coil = "2.6.0"
@@ -50,10 +52,15 @@ ktor-client-negotiation = { module = "io.ktor:ktor-client-content-negotiation", 
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 
+#room
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }#Use ksp
+
 #others
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 coil = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
-lottie = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie"}
+lottie = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 
 #tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -69,6 +76,7 @@ androidx-ui-graphics-android = { group = "androidx.compose.ui", name = "ui-graph
 koin = ["koin-core", "koin-compose", "koin-android"]
 ktor = ["ktor-client-core", "ktor-client-okhttp", "ktor-client-serialization", "ktor-client-negotiation", "ktor-client-android", "ktor-client-logging", "ktor-client-json", "ktor-client-serialization-kotlinx-json"]
 compose = ["compose-ui", "compose-ui-graphics", "compose-ui-tooling-preview", "compose-material3", "compose-constraintLayout", "navigation-compose", "activity-compose"]
+room = ["room-ktx", "room-runtime"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -76,5 +84,6 @@ android-library = { id = "com.android.library" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 

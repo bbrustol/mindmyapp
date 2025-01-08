@@ -1,6 +1,11 @@
-package com.bbrustol.mindmylib.data.organizations.domain.model
+package com.bbrustol.feature.organizations.model
 
-data class OrganizationsItemDomainModel(
+import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
+
+@Serializable
+@Immutable
+data class OrganizationsItemUiModel(
     val avatarUrl: String,
     val description: String,
     val eventsUrl: String,
@@ -12,5 +17,7 @@ data class OrganizationsItemDomainModel(
     val nodeId: String,
     val publicMembersUrl: String,
     val reposUrl: String,
-    val url: String
+    val url: String,
+    val isFavorite: Boolean,
+    val index: Int
 )

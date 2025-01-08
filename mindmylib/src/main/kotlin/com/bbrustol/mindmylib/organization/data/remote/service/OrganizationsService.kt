@@ -1,9 +1,9 @@
-package com.bbrustol.mindmylib.data.organizations.data.service
+package com.bbrustol.mindmylib.organization.data.remote.service
 
 import com.bbrustol.core.infrastructure.BuildConfig
 import com.bbrustol.core.infrastructure.network.ApiHandler.handleApi
 import com.bbrustol.core.infrastructure.network.ApiResult
-import com.bbrustol.mindmylib.data.organizations.data.response.OrganizationsResponse
+import com.bbrustol.mindmylib.organization.data.remote.response.OrganizationsResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header

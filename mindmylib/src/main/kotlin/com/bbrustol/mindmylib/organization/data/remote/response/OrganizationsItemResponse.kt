@@ -1,4 +1,4 @@
-package com.bbrustol.mindmylib.data.organizations.data.response
+package com.bbrustol.mindmylib.organization.data.remote.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

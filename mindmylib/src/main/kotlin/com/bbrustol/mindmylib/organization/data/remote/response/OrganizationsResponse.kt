@@ -1,3 +1,3 @@
-package com.bbrustol.mindmylib.data.organizations.data.response
+package com.bbrustol.mindmylib.organization.data.remote.response
 
 typealias OrganizationsResponse = List<OrganizationsItemResponse>
