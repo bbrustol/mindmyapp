@@ -22,7 +22,8 @@ internal sealed interface OrganizationsUiState {
     data class OrganizationsList(
         val list: List<OrganizationsItemsUiModel>,
         val lastId: Int = 0,
-        val isLoading: Boolean = false
+        val isLoading: Boolean = false,
+        val sortType: SortType = SortType.Id,
     ) : OrganizationsUiState
 
     data class ShowError(
@@ -42,6 +43,7 @@ internal sealed interface OrganizationsEvent {
     data object GetList : OrganizationsEvent
     data class GetDetails(val uiModel: OrganizationsItemsUiModel) : OrganizationsEvent
     data class UpdateSearchTerm(val uiModel: List<OrganizationsItemsUiModel>) : OrganizationsEvent
+    data class SortListBy(val sortType: SortType) : OrganizationsEvent
 }
 
 internal sealed interface OrganizationsSideEffect {
@@ -59,6 +61,10 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
             is GetDetails -> sendSideEffect { GotoDetails(event.uiModel) }
             is GetList -> getOrganizationList()
             is UpdateSearchTerm -> updateSearchTerm(event.uiModel)
+            is SortListBy -> sortList(
+                event.sortType,
+                OrganizationsList((uiState.value as? OrganizationsList)?.list ?: emptyList())
+            )
         }
     }
 
@@ -66,18 +72,7 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
         viewModelScope.launch {
             val lastId = (uiState.value as? OrganizationsList)?.lastId ?: 0
             organizationsRepository.getOrganizationsList(lastId)
-                .onStart {
-                    val currentState = (uiState.value as? OrganizationsList)
-                    if (currentState != null) {
-                        updateState {
-                            OrganizationsList(
-                                list = currentState.list,
-                                lastId = currentState.lastId,
-                                isLoading = true,
-                            )
-                        }
-                    }
-                }
+                .onStart { setLoading() }
                 .catch {
                     updateState {
                         ShowException(
@@ -112,38 +107,57 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
         }
     }
 
+    private fun setLoading() {
+        val currentState = (uiState.value as? OrganizationsList)
+        currentState?.let {
+            sortList(
+                organizationsList = OrganizationsList(
+                    list = it.list,
+                    isLoading = true
+                )
+            )
+        }
+    }
+
     private fun initList(result: List<OrganizationsItemDomainModel>) {
-        updateState {
-            OrganizationsList(
+        sortList(
+            organizationsList = OrganizationsList(
                 list = result.toUiModel(),
                 lastId = result.toUiModel().last().id,
                 isLoading = false
             )
-        }
+        )
     }
 
     private fun updateList(result: List<OrganizationsItemDomainModel>) {
         val currentState = (uiState.value as? OrganizationsList)
 
-        if (currentState != null) {
-            updateState {
-                OrganizationsList(
-                    list = currentState.list + result.toUiModel(),
+        currentState?.let {
+            sortList(
+                organizationsList = OrganizationsList(
+                    list = it.list + result.toUiModel(),
                     lastId = result.toUiModel().last().id,
-                    isLoading = false
+                    isLoading = false,
                 )
-            }
+            )
         }
     }
 
     private fun updateSearchTerm(filteredItems: List<OrganizationsItemsUiModel>) {
-        val currentState = (uiState.value as? OrganizationsList)
-        if (currentState != null) {
-            updateState {
-                OrganizationsList(
-                    list = filteredItems,
-                    lastId = currentState.lastId,
-                    isLoading = currentState.isLoading
+        sortList(organizationsList = OrganizationsList(list = filteredItems))
+    }
+
+    private fun sortList(sortType: SortType? = null, organizationsList: OrganizationsList) {
+        updateState {
+            if (sortType == null) {
+                organizationsList
+            } else {
+                organizationsList.copy(
+                    list = when (sortType) {
+                        SortType.Login -> organizationsList.list.sortedBy { it.login }
+                        SortType.Id -> organizationsList.list.sortedBy { it.id }
+                    },
+                    sortType = sortType
                 )
             }
         }

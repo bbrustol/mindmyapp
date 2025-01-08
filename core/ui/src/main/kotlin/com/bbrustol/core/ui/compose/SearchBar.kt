@@ -27,7 +27,7 @@ fun SearchBar(
                 Text(text = message)
             }
         },
-        isError = message.isNotEmpty(),
+        isError = message.isNotEmpty() && searchTerm.isNotEmpty(),
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 4.dp)
