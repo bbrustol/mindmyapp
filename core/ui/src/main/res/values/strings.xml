@@ -6,4 +6,7 @@
     <string name="missing_token">Missing token!\n\nPlease add API_TOKEN={YOUR_TOKE} in local.properties to proceed.</string>
     <string name="search_by_name_or_id">Search by name or id in the local list.</string>
     <string name="search_not_found">"This organization doesn't exist in the local list."</string>
+
+    <!-- accessibility strings -->
+    <string name="speech_arrow_back">Back</string>">
 </resources>

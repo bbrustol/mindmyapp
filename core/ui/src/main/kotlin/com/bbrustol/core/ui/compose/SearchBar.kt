@@ -12,6 +12,7 @@ import com.bbrustol.core.ui.R
 
 @Composable
 fun SearchBar(
+    modifier: Modifier = Modifier,
     searchTerm: String,
     onSearchTermChanged: (String) -> Unit,
     message: String,
@@ -26,8 +27,9 @@ fun SearchBar(
                 Text(text = message)
             }
         },
-        modifier = Modifier
+        isError = message.isNotEmpty(),
+        modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp)
+            .padding(bottom = 4.dp)
     )
 }
