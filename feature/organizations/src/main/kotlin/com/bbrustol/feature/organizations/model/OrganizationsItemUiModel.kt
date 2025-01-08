@@ -19,5 +19,6 @@ data class OrganizationsItemUiModel(
     val reposUrl: String,
     val url: String,
     val isFavorite: Boolean,
-    val index: Int
+    val index: Int,
+    val isVisible: Boolean = true,
 )

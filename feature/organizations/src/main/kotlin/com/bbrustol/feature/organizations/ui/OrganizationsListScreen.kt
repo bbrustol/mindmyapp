@@ -31,14 +31,11 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,10 +47,7 @@ import com.bbrustol.core.ui.utils.InversePullToRefreshBox
 import com.bbrustol.core.ui.utils.LoadImage
 import com.bbrustol.feature.organizations.model.OrganizationsItemUiModel
 import com.bbrustol.feature.organizations.presentation.OrganizationsEvent
-import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.GetDetails
-import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.GetList
-import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.SortListBy
-import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.ToggleFavorite
+import com.bbrustol.feature.organizations.presentation.OrganizationsEvent.*
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.Idle
 import com.bbrustol.feature.organizations.presentation.OrganizationsUiState.OrganizationList
@@ -113,31 +107,20 @@ private fun CreateOrganizationsList(
     val listState = rememberLazyListState()
     val uiState = (organizationsUiState as OrganizationList)
 
-    var searchTerm by remember { mutableStateOf("") }
-    var filteredItems by remember { mutableStateOf(emptyList<OrganizationsItemUiModel>()) }
-
     Scaffold(
         modifier = modifier.padding(0.dp),
         topBar = {
             Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
                 SearchBar(
-                    searchTerm = searchTerm,
+                    searchTerm = uiState.searchTerm,
                     onSearchTermChanged = { search ->
-                        searchTerm = search
+                        onEvent(FilterList(search))
 
                         CoroutineScope(Dispatchers.Main).launch {
-                            listState.scrollToItem(0, 0)
-                        }
-
-                        filteredItems = uiState.list.filter { item ->
-                            item.login.contains(
-                                search,
-                                ignoreCase = true
-                            ) || item.id.toString()
-                                .contains(searchTerm)
+                            listState.firstVisibleItemScrollOffset
                         }
                     },
-                    message = if (filteredItems.isEmpty()) {
+                    message = if (uiState.list.firstOrNull { !it.isVisible }?.isVisible == true) {
                         stringResource(CoreUiR.string.search_not_found)
                     } else {
                         ""
@@ -159,13 +142,12 @@ private fun CreateOrganizationsList(
                         }
                     ) {
                         LazyColumn(state = listState) {
-                            if (filteredItems.isEmpty()) {
-                                items(list.size, key = { list[it].id }) {
-                                    CardOrganization(list[it], onEvent)
-                                }
-                            } else {
-                                items(filteredItems.size, key = { filteredItems[it].id }) {
-                                    CardOrganization(filteredItems[it], onEvent)
+                            with(uiState) {
+                                val filteredList = list.filter { it.isVisible }
+                                items(
+                                    filteredList.size,
+                                    key = { filteredList[it].id }) {
+                                    CardOrganization(filteredList[it], onEvent)
                                 }
                             }
                         }
@@ -259,7 +241,7 @@ private fun CardOrganization(
                     modifier = Modifier
                         .size(80.dp)
                         .weight(.3f),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.Fit
                 )
                 Column(
                     modifier = Modifier
@@ -281,10 +263,7 @@ private fun CardOrganization(
                 }
             }
 
-            var recompositionTrigger by remember { mutableIntStateOf(0) }
-
             IconButton(onClick = { onEvent(ToggleFavorite(itemUiModel)) }) {
-                recompositionTrigger += 1
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = stringResource(if (isFavorite) CoreUiR.string.speech_remove_from_favorites else CoreUiR.string.speech_add_to_favorites)
@@ -293,15 +272,6 @@ private fun CardOrganization(
         }
     }
 }
-
-@Composable
-private fun FavoriteButton(
-    onEvent: (OrganizationsEvent) -> Unit,
-    itemUiModel: OrganizationsItemUiModel
-) {
-
-}
-
 
 @Preview
 @Composable

@@ -21,10 +21,11 @@ import kotlinx.coroutines.launch
 internal sealed interface OrganizationsUiState {
     data object Idle : OrganizationsUiState
     data class OrganizationList(
-        val list: List<OrganizationsItemUiModel>,
+        val list: List<OrganizationsItemUiModel> = emptyList(),
         val lastId: Int = 0,
         val isLoading: Boolean = false,
         val sortType: SortType = SortType.Id,
+        val searchTerm: String = "",
     ) : OrganizationsUiState
 
     data class ShowError(
@@ -43,7 +44,7 @@ internal sealed interface OrganizationsUiState {
 internal sealed interface OrganizationsEvent {
     data object GetList : OrganizationsEvent
     data class GetDetails(val uiModel: OrganizationsItemUiModel) : OrganizationsEvent
-    data class UpdateSearchTerm(val uiModel: List<OrganizationsItemUiModel>) : OrganizationsEvent
+    data class FilterList(val searchTerm: String) : OrganizationsEvent
     data class SortListBy(val sortType: SortType) : OrganizationsEvent
     data class ToggleFavorite(val item: OrganizationsItemUiModel) :
         OrganizationsEvent
@@ -63,14 +64,9 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
         when (event) {
             is GetDetails -> sendSideEffect { GotoDetails(event.uiModel) }
             is GetList -> getOrganizationList()
-            is UpdateSearchTerm -> updateSearchTerm(event.uiModel)
-            is SortListBy -> sortList(
-                event.sortType,
-                OrganizationList((uiState.value as? OrganizationList)?.list ?: emptyList())
-            )
-
+            is FilterList -> updateSearch(event.searchTerm, (uiState.value as OrganizationList))
+            is SortListBy -> sortList(event.sortType, (uiState.value as OrganizationList))
             is ToggleFavorite -> toggleFavorite(event.item)
-
         }
     }
 
@@ -117,8 +113,7 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
         val currentState = (uiState.value as? OrganizationList)
         currentState?.let {
             sortList(
-                organizationList = OrganizationList(
-                    list = it.list,
+                organizationList = currentState.copy(
                     isLoading = true
                 )
             )
@@ -126,7 +121,7 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
     }
 
     private fun initList(result: List<OrganizationsItemDomainModel>) {
-        sortList(
+        updateSearch(
             organizationList = OrganizationList(
                 list = result.toUiModel(0),
                 lastId = result.toUiModel(0).last().id,
@@ -139,33 +134,13 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
         val currentState = (uiState.value as? OrganizationList)
 
         currentState?.let {
-            sortList(
+            updateSearch(
                 organizationList = OrganizationList(
                     list = it.list + result.toUiModel(currentState.list.size),
                     lastId = result.toUiModel(currentState.list.size).last().id,
                     isLoading = false,
                 )
             )
-        }
-    }
-
-    private fun updateSearchTerm(filteredItems: List<OrganizationsItemUiModel>) {
-        sortList(organizationList = OrganizationList(list = filteredItems))
-    }
-
-    private fun sortList(sortType: SortType? = null, organizationList: OrganizationList) {
-        updateState {
-            if (sortType == null) {
-                organizationList
-            } else {
-                organizationList.copy(
-                    list = when (sortType) {
-                        SortType.Login -> organizationList.list.sortedBy { it.login }
-                        SortType.Id -> organizationList.list.sortedBy { it.id }
-                    },
-                    sortType = sortType
-                )
-            }
         }
     }
 
@@ -186,7 +161,45 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                 organizationsRepository.removeFavorite(item.id)
             }
 
-            sortList(organizationList = OrganizationList(list = listUpdated))
+            updateSearch(
+                organizationList = currentState.copy(
+                    list = listUpdated
+                )
+            )
         }
+    }
+
+    private fun updateSearch(searchTerm: String? = null, organizationList: OrganizationList) {
+        val searchStr = searchTerm ?: organizationList.searchTerm
+        organizationList.let {
+            val filteredItems = organizationList.list.map { item ->
+                item.copy(
+                    isVisible = searchStr.isEmpty()
+                            || item.login.contains(searchStr, ignoreCase = true)
+                            || item.id.toString().contains(searchStr)
+                )
+            }
+            sortList(
+                organizationList = organizationList.copy(
+                    list = filteredItems,
+                    searchTerm = searchStr
+                )
+            )
+        }
+    }
+
+    private fun sortList(sortType: SortType? = null, organizationList: OrganizationList) {
+        updateState {
+
+            val sort = sortType ?: organizationList.sortType
+            organizationList.copy(
+                list = when (sort) {
+                    SortType.Login -> organizationList.list.sortedBy { it.login }
+                    SortType.Id -> organizationList.list.sortedBy { it.id }
+                },
+                sortType = sort
+            )
+        }
+
     }
 }
