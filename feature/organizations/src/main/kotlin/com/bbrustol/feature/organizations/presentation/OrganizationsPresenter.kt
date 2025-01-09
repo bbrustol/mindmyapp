@@ -217,6 +217,7 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                 list = when (sort) {
                     SortType.Login -> organizationList.list.sortedBy { it.login }
                     SortType.Id -> organizationList.list.sortedBy { it.id }
+                    SortType.Favorites -> organizationList.list.sortedByDescending { it.isFavorite }
                 },
                 sortType = sort
             )

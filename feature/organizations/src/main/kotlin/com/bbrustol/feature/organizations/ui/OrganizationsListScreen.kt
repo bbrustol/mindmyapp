@@ -256,6 +256,11 @@ private fun CreateOrganizationsList(
                             }
 
                             SortType.Login -> {
+                                sortedByStr = CoreUiR.string.button_sort_favorites
+                                onEvent(SortListBy(SortType.Favorites))
+                            }
+
+                            SortType.Favorites -> {
                                 sortedByStr = CoreUiR.string.button_sort_id
                                 onEvent(SortListBy(SortType.Id))
                             }
@@ -264,7 +269,6 @@ private fun CreateOrganizationsList(
                         CoroutineScope(Dispatchers.Main).launch {
                             listState.firstVisibleItemScrollOffset
                         }
-
                     }
                 ) {
                     Text(
@@ -345,17 +349,9 @@ private fun CardOrganization(
 fun CardOrganizationPreview() {
     val mock = OrganizationsItemUiModel(
         avatarUrl = "avatarUrl",
-        description = "description",
         eventsUrl = "eventsUrl",
-        hooksUrl = "hooksUrl",
         id = 0,
-        issuesUrl = "issuesUrl",
         login = "login",
-        membersUrl = "membersUrl",
-        nodeId = "nodeId",
-        publicMembersUrl = "publicMembersUrl",
-        reposUrl = "reposUrl",
-        url = "url",
         isFavorite = false,
         index = 0
     )

@@ -10,6 +10,7 @@
     <string name="button_sort_by">Sort by %1$s</string>
     <string name="button_sort_id">id</string>
     <string name="button_sort_login">login</string>
+    <string name="button_sort_favorites">favorite</string>
 
     <string name="title_favorites">Favorites</string>
     <string name="title_Organizations">Organizations</string>">
