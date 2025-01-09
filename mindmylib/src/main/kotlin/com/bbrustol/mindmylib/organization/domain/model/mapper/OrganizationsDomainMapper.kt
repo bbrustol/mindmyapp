@@ -4,28 +4,29 @@ import com.bbrustol.mindmylib.organization.data.local.entiies.FavoriteEntity
 import com.bbrustol.mindmylib.organization.domain.model.OrganizationsItemDomainModel
 import com.bbrustol.mindmylib.organization.data.remote.response.OrganizationsItemResponse
 
-fun List<OrganizationsItemResponse>.toDomainModel(favorites: List<FavoriteEntity>) = this.map { it.toDomainModel(favorites) }
+fun List<OrganizationsItemResponse>.toDomainModel(favorites: List<FavoriteEntity>? = null) =
+    this.map { it.toDomainModel(favorites) }
 
-fun OrganizationsItemResponse.toDomainModel(favorites: List<FavoriteEntity>) = OrganizationsItemDomainModel(
-    avatarUrl = avatarUrl ?: "",
-    description = description ?: "",
-    eventsUrl = eventsUrl ?: "",
-    hooksUrl = hooksUrl ?: "",
-    id = id,
-    issuesUrl = issuesUrl ?: "",
-    login = login,
-    membersUrl = membersUrl ?: "",
-    nodeId = nodeId,
-    publicMembersUrl = publicMembersUrl ?: "",
-    reposUrl = reposUrl ?: "",
-    url = url ?: "",
-    isFavorite = favorites.any { it.id == id }
-)
-
+fun OrganizationsItemResponse.toDomainModel(favorites: List<FavoriteEntity>? = null) =
+    OrganizationsItemDomainModel(
+        avatarUrl = avatarUrl ?: "",
+        description = description ?: "",
+        eventsUrl = eventsUrl ?: "",
+        hooksUrl = hooksUrl ?: "",
+        id = id,
+        issuesUrl = issuesUrl ?: "",
+        login = login,
+        membersUrl = membersUrl ?: "",
+        nodeId = nodeId,
+        publicMembersUrl = publicMembersUrl ?: "",
+        reposUrl = reposUrl ?: "",
+        url = url ?: "",
+        isFavorite = favorites?.any { it.id == id } ?: false
+    )
 
 fun List<FavoriteEntity>.toDomainModel() = this.map { it.toDomainModel() }
 
-fun FavoriteEntity.toDomainModel() = OrganizationsItemDomainModel (
+fun FavoriteEntity.toDomainModel() = OrganizationsItemDomainModel(
     avatarUrl = avatarUrl,
     description = "",
     eventsUrl = "",

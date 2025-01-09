@@ -100,7 +100,7 @@ abstract class BasePresenter<in Event, UiState, SideEffect> : ViewModel() {
      *
      * @param reducer a lambda that takes the current UI state and returns a new modified state.
      */
-    protected fun updateState(reducer: UiState.() -> UiState) {
+    fun updateState(reducer: UiState.() -> UiState) {
         _uiState.update(reducer)
     }
 
