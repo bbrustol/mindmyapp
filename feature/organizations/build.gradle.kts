@@ -44,10 +44,13 @@ dependencies {
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
-    debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.bundles.koin)
     implementation(libs.bundles.ktor)
 
     implementation(libs.kotlinx.serialization.json)
+
+    debugImplementation(libs.compose.ui.tooling)
+
+    testImplementation(libs.bundles.unit.test)
 }

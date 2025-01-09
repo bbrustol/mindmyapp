@@ -41,13 +41,11 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
-    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.compose.ui.tooling)
 
-    implementation(libs.androidx.ui.graphics.android)
     implementation(libs.coil)
     implementation(libs.lottie)
 }

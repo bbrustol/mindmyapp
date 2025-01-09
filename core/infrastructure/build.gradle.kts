@@ -53,9 +53,8 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
 
     implementation(libs.bundles.koin)
     implementation(libs.bundles.ktor)
-    testImplementation(libs.junit)
+
 }

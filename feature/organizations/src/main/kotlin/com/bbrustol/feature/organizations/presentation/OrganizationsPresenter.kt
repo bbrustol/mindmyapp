@@ -221,6 +221,5 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
                 sortType = sort
             )
         }
-
     }
 }
