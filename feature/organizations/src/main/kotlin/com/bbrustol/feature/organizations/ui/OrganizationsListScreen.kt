@@ -92,7 +92,72 @@ internal fun OrganizationsListScreen(
         ) { }
 
         ShowNoInternet -> WithoutInternetScreen { onEvent(GetList) }
+        is OrganizationsUiState.FavoriteList -> CreateFavoriteList(
+            organizationsUiState = uiState,
+            onEvent = onEvent
+        )
     }
+}
+
+@Composable
+private fun CreateFavoriteList(
+    modifier: Modifier = Modifier,
+    organizationsUiState: OrganizationsUiState.FavoriteList,
+    onEvent: (OrganizationsEvent) -> Unit
+) {
+    val listState = rememberLazyListState()
+    val uiState = organizationsUiState
+
+    Scaffold(
+        modifier = modifier.padding(0.dp),
+        topBar = {
+            Column(modifier = Modifier.padding(WindowInsets.statusBars.asPaddingValues())) {
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    text = stringResource(CoreUiR.string.title_favorites)
+                )
+            }
+        },
+        content = { paddingValues ->
+            Column(modifier = Modifier.padding(paddingValues)) {
+                with(uiState) {
+                    LazyColumn(state = listState) {
+                        with(uiState) {
+                            val filteredList = list.filter { it.isVisible }
+                            items(
+                                filteredList.size,
+                                key = { filteredList[it].id }) {
+                                CardOrganization(filteredList[it], onEvent, true)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .padding(
+                        top = 4.dp,
+                        bottom = WindowInsets.statusBars
+                            .asPaddingValues()
+                            .calculateBottomPadding()
+                    )
+            ) {
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 4.dp, end = 1.dp),
+                    onClick = { onEvent(GetList) },
+                    shape = RoundedCornerShape(size = 4.dp),
+                ) {
+                    Text(text = stringResource(CoreUiR.string.title_Organizations))
+                }
+            }
+        }
+    )
 }
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -147,7 +212,7 @@ private fun CreateOrganizationsList(
                                 items(
                                     filteredList.size,
                                     key = { filteredList[it].id }) {
-                                    CardOrganization(filteredList[it], onEvent)
+                                    CardOrganization(filteredList[it], onEvent, isFav = false)
                                 }
                             }
                         }
@@ -166,16 +231,15 @@ private fun CreateOrganizationsList(
                             .asPaddingValues()
                             .calculateBottomPadding()
                     )
-
             ) {
                 Button(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 4.dp, end = 1.dp),
-                    onClick = { /*TODO*/ },
+                    onClick = { onEvent(GetFavoriteList) },
                     shape = RoundedCornerShape(size = 4.dp),
                 ) {
-                    Text(text = stringResource(CoreUiR.string.button_try_again))
+                    Text(text = stringResource(CoreUiR.string.title_favorites))
                 }
 
                 var sortedByStr by remember { mutableIntStateOf(CoreUiR.string.button_sort_id) }
@@ -218,7 +282,8 @@ private fun CreateOrganizationsList(
 @Composable
 private fun CardOrganization(
     itemUiModel: OrganizationsItemUiModel,
-    onEvent: (OrganizationsEvent) -> Unit
+    onEvent: (OrganizationsEvent) -> Unit,
+    isFav: Boolean = false
 ) {
     Card(
         modifier = Modifier
@@ -263,11 +328,13 @@ private fun CardOrganization(
                 }
             }
 
-            IconButton(onClick = { onEvent(ToggleFavorite(itemUiModel)) }) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = stringResource(if (isFavorite) CoreUiR.string.speech_remove_from_favorites else CoreUiR.string.speech_add_to_favorites)
-                )
+            if (!isFav) {
+                IconButton(onClick = { onEvent(ToggleFavorite(itemUiModel)) }) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = stringResource(if (isFavorite) CoreUiR.string.speech_remove_from_favorites else CoreUiR.string.speech_add_to_favorites)
+                    )
+                }
             }
         }
     }
@@ -293,5 +360,5 @@ fun CardOrganizationPreview() {
         index = 0
     )
 
-    CardOrganization(mock) {}
+    CardOrganization(mock, {}, true)
 }

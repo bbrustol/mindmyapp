@@ -28,6 +28,13 @@ internal sealed interface OrganizationsUiState {
         val searchTerm: String = "",
     ) : OrganizationsUiState
 
+    data class FavoriteList(
+        val list: List<OrganizationsItemUiModel> = emptyList(),
+        val isLoading: Boolean = false,
+        val sortType: SortType = SortType.Id,
+        val searchTerm: String = ""
+    ) : OrganizationsUiState
+
     data class ShowError(
         val code: Int,
         val message: String?,
@@ -43,6 +50,7 @@ internal sealed interface OrganizationsUiState {
 
 internal sealed interface OrganizationsEvent {
     data object GetList : OrganizationsEvent
+    data object GetFavoriteList : OrganizationsEvent
     data class GetDetails(val uiModel: OrganizationsItemUiModel) : OrganizationsEvent
     data class FilterList(val searchTerm: String) : OrganizationsEvent
     data class SortListBy(val sortType: SortType) : OrganizationsEvent
@@ -67,6 +75,19 @@ internal class OrganizationsPresenter(private val organizationsRepository: Organ
             is FilterList -> updateSearch(event.searchTerm, (uiState.value as OrganizationList))
             is SortListBy -> sortList(event.sortType, (uiState.value as OrganizationList))
             is ToggleFavorite -> toggleFavorite(event.item)
+            is GetFavoriteList -> getFavoriteList()
+        }
+    }
+
+    private fun getFavoriteList() {
+        viewModelScope.launch {
+            organizationsRepository.getFavoritesDomainModel().collect {
+                updateState {
+                    FavoriteList(
+                        list = it.toUiModel(0)
+                    )
+                }
+            }
         }
     }
 

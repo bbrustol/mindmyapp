@@ -10,7 +10,6 @@ import com.bbrustol.mindmylib.organization.data.remote.service.OrganizationsServ
 import com.bbrustol.mindmylib.organization.domain.model.OrganizationsItemDomainModel
 import com.bbrustol.mindmylib.organization.domain.model.mapper.toDomainModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -54,8 +53,12 @@ class OrganizationsRepository(
         }
     }
 
-    fun getFavorites(): List<FavoriteEntity> {
+    private fun getFavorites(): List<FavoriteEntity> {
         return favoriteDao.getAllFavorites()
+    }
+
+    fun getFavoritesDomainModel(): Flow<List<OrganizationsItemDomainModel>> {
+        return flow { emit(getFavorites().toDomainModel()) }.flowOn(dispatcher)
     }
     //endregion
 }

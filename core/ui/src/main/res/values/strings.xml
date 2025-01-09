@@ -11,6 +11,9 @@
     <string name="button_sort_id">id</string>
     <string name="button_sort_login">login</string>
 
+    <string name="title_favorites">Favorites</string>
+    <string name="title_Organizations">Organizations</string>">
+
     <!-- accessibility strings -->
     <string name="speech_arrow_back">Back</string>">
     <string name="speech_remove_from_favorites">Remove from favorites</string>
